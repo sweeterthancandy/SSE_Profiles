@@ -719,6 +719,50 @@ struct CountDisjoint64 : Test{
                 }
                 return count;
         }
+
+        unsigned ExecuteSSE256()const{
+                int_type mask = 0x4587a8292388988aull;
+
+                int_type const* first = begin();
+                int_type const* last  = end();
+                enum{ Stride = 4 };
+
+                // don't always have X_epi64(), so we operator on hi and lo half
+
+                __m256i M = _mm256_set_epi32( static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff) );
+                __m256i Counter = _mm256_setzero_si256();
+                __m256i Mask    = _mm256_set_epi32(0, 1, 0, 1, 0, 1, 0, 1);
+
+                for(;first + Stride < last;first+=Stride){
+                        __m256i A = _mm256_load_si256((__m256i const*)first);
+                        __m256i B = _mm256_and_si256(M, A);
+                        __m256i C = _mm256_cmpeq_epi64(B, _mm256_setzero_si256());
+                        __m256i D = _mm256_and_si256(C,Mask);
+                        Counter = _mm256_add_epi64(D, Counter);
+                }
+                size_t count = 0;
+                count += _mm256_extract_epi32(Counter, 0);
+                count += _mm256_extract_epi32(Counter, 1) * 0xffffffff;
+                count += _mm256_extract_epi32(Counter, 2);
+                count += _mm256_extract_epi32(Counter, 3) * 0xffffffff;
+                count += _mm256_extract_epi32(Counter, 4);
+                count += _mm256_extract_epi32(Counter, 5) * 0xffffffff;
+                count += _mm256_extract_epi32(Counter, 6);
+                count += _mm256_extract_epi32(Counter, 7) * 0xffffffff;
+                for(;first!=last;++first){
+                        if( ( *first & mask ) == 0 )
+                                ++count;
+                }
+                return count;
+        }
+
         virtual std::string Name()const{ return "CountDisjoint64"; }
         
         virtual FunctionRange Subs()const{
@@ -729,6 +773,7 @@ struct CountDisjoint64 : Test{
                 ADD_PROFILE(ExecuteSSE128WithZero);
                 ADD_PROFILE(ExecuteSSE128Unrolled);
                 ADD_PROFILE(ExecuteSSE128UnrolledStream);
+                ADD_PROFILE(ExecuteSSE256);
 
                 return builder.Make();
         }
@@ -794,6 +839,7 @@ int main(){
         enum{ Dp = 8 };
         enum{ Count = 10 };
         enum{ Width = 50 };
+        enum{ AlwaysPrint = 0 };
         std::vector<boost::shared_ptr<Test> > T;
         T.push_back(boost::make_shared<MaxElement>(100000000));
         T.push_back(boost::make_shared<CountDisjoint>  (100000000));
@@ -804,12 +850,22 @@ int main(){
         BOOST_FOREACH(boost::shared_ptr<Test> test, T){
                 std::map<std::string, boost::timer::nanosecond_type> profile;
                 for(size_t idx=0;idx!=Count;++idx){
+                        std::set<unsigned> check;
+                        std::vector<std::pair<std::string, unsigned> > ledger;
                         BOOST_FOREACH(NamedFunction const& F, test->Subs()){
                                 boost::timer::cpu_timer tmr;
                                 unsigned result = F.Execute();
                                 std::string token = test->Name() + "." + F.Name();
                                 profile[token] += tmr.elapsed().wall;
+                                ledger.emplace_back(token, result);
+                                check.insert(result);
                                 //BOOST_LOG_TRIVIAL(trace) << std::left << std::setw(Width) << token << boost::timer::format(tmr.elapsed(), Dp, " took %w seconds") << " ( " << result << ")";
+                        }
+                        std::string error_msg = (check.size() >= 2 ? "ERROR: " : "");
+                        if( AlwaysPrint || error_msg.size() != 0  ){
+                                for(auto const& p : ledger ){
+                                        BOOST_LOG_TRIVIAL(trace)  << error_msg << std::setw(Width) << std::left << p.first  << " | " << p.second;
+                                }
                         }
                 }
                 typedef std::pair<std::string, boost::timer::nanosecond_type>  pair_type;
