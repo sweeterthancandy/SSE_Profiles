@@ -762,6 +762,90 @@ struct CountDisjoint64 : Test{
                 }
                 return count;
         }
+        unsigned ExecuteSSE256Mask()const{
+                int_type mask = 0x4587a8292388988aull;
+
+                int_type const* first = begin();
+                int_type const* last  = end();
+                enum{ Stride = 4 };
+
+                // don't always have X_epi64(), so we operator on hi and lo half
+
+                __m256i M = _mm256_set_epi32( static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff) );
+
+                std::array<__mmask8, 256> mask2count;
+                for(size_t x = 0; x < 256; ++x ){
+                        mask2count[x] = __builtin_popcount(x);
+                }
+
+                size_t count = 0;
+
+                for(;first + Stride < last;first+=Stride){
+                        __m256i A = _mm256_load_si256((__m256i const*)first);
+                        __m256i B = _mm256_and_si256(M, A);
+                        __mmask8 C = _mm256_cmpeq_epi64_mask(B, _mm256_setzero_si256());
+                        count += mask2count[C];
+                }
+                for(;first!=last;++first){
+                        if( ( *first & mask ) == 0 )
+                                ++count;
+                }
+                return count;
+        }
+        #if 0
+        unsigned ExecuteSSE512()const{
+                int_type mask = 0x4587a8292388988aull;
+
+                int_type const* first = begin();
+                int_type const* last  = end();
+                enum{ Stride = 8 };
+
+                // don't always have X_epi64(), so we operator on hi and lo half
+
+                __m512i M = _mm512_set_epi32( static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff),
+                                              static_cast<int>(mask >> 32 ),
+                                              static_cast<int>(mask & 0xffffffff) );
+                __m512i Mask    = _mm512_set_epi32(0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1);
+
+                size_t count = 0;
+                std::array<__mmask8, 256> mask2count;
+                for(size_t x = 0; x < 256; ++x ){
+                        mask2count[x] = __builtin_popcount(x);
+                }
+
+                for(;first + Stride < last;first+=Stride){
+                        __m512i A = _mm512_load_si512((__m512i const*)first);
+                        __m512i B = _mm512_and_si512(M, A);
+                        __mmask8 C = _mm512_cmpeq_epi64_mask(B, _mm512_setzero_si512());
+                        count += mask2count[C];
+                }
+                for(;first!=last;++first){
+                        if( ( *first & mask ) == 0 )
+                                ++count;
+                }
+                return count;
+        }
+        #endif
 
         virtual std::string Name()const{ return "CountDisjoint64"; }
         
