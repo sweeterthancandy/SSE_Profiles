@@ -11,6 +11,7 @@
 #include <ostream>
 #include <map>
 #include <algorithm>
+#include <boost/config.hpp>
 #include <boost/timer/timer.hpp>
 #include <iostream>
 #include <boost/range.hpp>
@@ -97,7 +98,7 @@ namespace Detail{
 
 struct MaxElement : Test{
         typedef MaxElement self_type;
-        explicit MaxElement(int n){
+        explicit MaxElement(size_t n){
                 vec_.resize(n);
                 for(size_t idx=0;idx!=n;++idx){
                         vec_[idx] = (idx * idx )  % 762 + ( idx * 34 ) % 493  + idx / 1000;
@@ -331,7 +332,7 @@ private:
 
 struct CountDisjoint : Test{
         typedef CountDisjoint self_type;
-        explicit CountDisjoint(int n){
+        explicit CountDisjoint(size_t n){
                 vec_.resize(n);
                 for(size_t idx=0;idx!=n;++idx){
                         vec_[idx] = (idx * idx )  % 762 + ( idx * 34 ) % 493  + idx / 1000 + ( idx % 5 == 0 ? 1 : 0 );
@@ -433,7 +434,11 @@ struct CountDisjoint : Test{
                         // now compare with zero,  maps to {0,~0}
                         __m128i C = _mm_cmpeq_epi32(B, _mm_setzero_si128());
 
+                        #ifdef BOOST_OS_LINUX
+                        count += __builtin_popcount(_mm_movemask_epi8(C))/4;
+                        #else
                         count += __popcnt16(_mm_movemask_epi8(C))/4;
+                        #endif
 
                         #if 0
                         // map ~0 to 1, which corresponds to [c0,c1,c2,c3}, where ci \in {0,1}
@@ -497,7 +502,11 @@ private:
 
 struct CountDisjoint64 : Test{
         typedef CountDisjoint64 self_type;
+        #ifdef BOOST_OS_LINUX
+        typedef std::int64_t int_type;
+        #else
         typedef unsigned __int64 int_type;
+        #endif
         explicit CountDisjoint64(size_t sz):sz_(sz){
                 alligned_vec_ = (int_type*)_mm_malloc(sz_ * sizeof(int_type), 16);
                 int_type* out = alligned_vec_;
