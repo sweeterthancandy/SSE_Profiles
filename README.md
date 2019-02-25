@@ -1,77 +1,37 @@
 personal code trying to figure out optimial SSE execution.
 I started this because I wanted to find the quickest way to count the number of disjoint bitmask in a vector
+        
+        ./driver # Linux 
+        [2019-02-25 20:18:12.704241] [0x00007f82389147c0] [trace]   MaxElement.ExecuteStride                          0.038813682 seconds
+        [2019-02-25 20:18:12.704252] [0x00007f82389147c0] [trace]   MaxElement.ExecuteStl                             0.034253724 seconds
+        [2019-02-25 20:18:12.704254] [0x00007f82389147c0] [trace]   MaxElement.ExecuteBoostRange                      0.034121781 seconds
+        [2019-02-25 20:18:12.704256] [0x00007f82389147c0] [trace]   MaxElement.ExecuteStlRaw                          0.034098375 seconds
+        [2019-02-25 20:18:12.704257] [0x00007f82389147c0] [trace]   MaxElement.ExecuteSSE                             0.027576269 seconds
+        [2019-02-25 20:18:12.704259] [0x00007f82389147c0] [trace]   MaxElement.ExecuteStrideRaw                       0.020964617 seconds
+        [2019-02-25 20:18:12.704260] [0x00007f82389147c0] [trace]   MaxElement.ExecuteSSELoad                         0.019754865 seconds
+        [2019-02-25 20:18:12.704262] [0x00007f82389147c0] [trace]   MaxElement.ExecuteSSELoadOneReg                   0.019739701 seconds
+        [2019-02-25 20:18:12.704263] [0x00007f82389147c0] [trace]   MaxElement.ExecuteSSEStide                        0.019666252 seconds
+        [2019-02-25 20:18:12.704265] [0x00007f82389147c0] [trace]   MaxElement.ExecuteNaiveRaw                        0.018623928 seconds
+        [2019-02-25 20:18:12.704266] [0x00007f82389147c0] [trace]   MaxElement.ExecuteNaive                           0.018622805 seconds
+        [2019-02-25 20:18:14.091870] [0x00007f82389147c0] [trace]   CountDisjoint.ExecuteNaiveUnrolled                0.048532231 seconds
+        [2019-02-25 20:18:14.091875] [0x00007f82389147c0] [trace]   CountDisjoint.ExecuteSSEPopcount                  0.026181638 seconds
+        [2019-02-25 20:18:14.091877] [0x00007f82389147c0] [trace]   CountDisjoint.ExecuteSSEStream                    0.022496265 seconds
+        [2019-02-25 20:18:14.091879] [0x00007f82389147c0] [trace]   CountDisjoint.ExecuteSSE                          0.02192771 seconds
+        [2019-02-25 20:18:14.091880] [0x00007f82389147c0] [trace]   CountDisjoint.ExecuteNaive                        0.019603402 seconds
+        [2019-02-25 20:18:17.040011] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteSSE128WithZero             0.043961766 seconds
+        [2019-02-25 20:18:17.040016] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteSSE128                     0.0439052 seconds
+        [2019-02-25 20:18:17.040018] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream       0.043235714 seconds
+        [2019-02-25 20:18:17.040020] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteSSE128Unrolled             0.043077846 seconds
+        [2019-02-25 20:18:17.040021] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteNaiveUnrolled              0.041908317 seconds
+        [2019-02-25 20:18:17.040023] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteSSE256                     0.039458407 seconds
+        [2019-02-25 20:18:17.040025] [0x00007f82389147c0] [trace]   CountDisjoint64.ExecuteNaive                      0.039236047 seconds
 
-        ./driver
-        [2019-02-21 17:26:28.953376] [0x00004790] [trace]   CountDisjoint
-        [2019-02-21 17:26:29.051416] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                         took 0.09723496 seconds ( 426471)
-        [2019-02-21 17:26:29.117442] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                 took 0.06627453 seconds ( 426471)
-        [2019-02-21 17:26:29.164461] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                           took 0.04654257 seconds ( 426471)
-        [2019-02-21 17:26:29.207478] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                     took 0.04355411 seconds ( 426471)
-        [2019-02-21 17:26:29.260499] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                   took 0.05242222 seconds ( 426471)
-        [2019-02-21 17:26:29.260499] [0x00004790] [trace]   CountDisjoint
-        [2019-02-21 17:26:29.361540] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                         took 0.10105877 seconds ( 426471)
-        [2019-02-21 17:26:29.426566] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                 took 0.06477199 seconds ( 426471)
-        [2019-02-21 17:26:29.470583] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                           took 0.04403312 seconds ( 426471)
-        [2019-02-21 17:26:29.513600] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                     took 0.04330580 seconds ( 426471)
-        [2019-02-21 17:26:29.564621] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                   took 0.05071537 seconds ( 426471)
-        [2019-02-21 17:26:29.564621] [0x00004790] [trace]   CountDisjoint
-        [2019-02-21 17:26:29.661660] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                         took 0.09676231 seconds ( 426471)
-        [2019-02-21 17:26:29.724685] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                 took 0.06266775 seconds ( 426471)
-        [2019-02-21 17:26:29.766702] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                           took 0.04256284 seconds ( 426471)
-        [2019-02-21 17:26:29.809719] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                     took 0.04302475 seconds ( 426471)
-        [2019-02-21 17:26:29.862740] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                   took 0.05301708 seconds ( 426471)
-        [2019-02-21 17:26:29.862740] [0x00004790] [trace]   CountDisjoint
-        [2019-02-21 17:26:29.960779] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                         took 0.09774526 seconds ( 426471)
-        [2019-02-21 17:26:30.047814] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                 took 0.08652704 seconds ( 426471)
-        [2019-02-21 17:26:30.110839] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                           took 0.06270685 seconds ( 426471)
-        [2019-02-21 17:26:30.160859] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                     took 0.05016401 seconds ( 426471)
-        [2019-02-21 17:26:30.215881] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                   took 0.05558274 seconds ( 426471)
-        [2019-02-21 17:26:30.215881] [0x00004790] [trace]   CountDisjoint
-        [2019-02-21 17:26:30.315921] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                         took 0.09979671 seconds ( 426471)
-        [2019-02-21 17:26:30.382948] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                 took 0.06665627 seconds ( 426471)
-        [2019-02-21 17:26:30.431968] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                           took 0.04852510 seconds ( 426471)
-        [2019-02-21 17:26:30.480987] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                     took 0.04894155 seconds ( 426471)
-        [2019-02-21 17:26:30.539010] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                   took 0.05875694 seconds ( 426471)
+        ./driver # Windows
         [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint.ExecuteNaive                        0.098498584
         [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint.ExecuteNaiveUnrolled                0.069359377
         [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint.ExecuteSSEPopcount                  0.054075212
         [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint.ExecuteSSE                          0.048847897
         [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint.ExecuteSSEStream                    0.045773996
-        [2019-02-21 17:26:30.540011] [0x00004790] [trace]   CountDisjoint64
-        [2019-02-21 17:26:30.722084] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                       took 0.18218273 seconds ( 1521107)
-        [2019-02-21 17:26:30.884148] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled               took 0.16268002 seconds ( 1521107)
-        [2019-02-21 17:26:31.011199] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                      took 0.12712740 seconds ( 1521107)
-        [2019-02-21 17:26:31.138250] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128WithZero              took 0.12690207 seconds ( 1521107)
-        [2019-02-21 17:26:31.262300] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128Unrolled              took 0.12331435 seconds ( 1521107)
-        [2019-02-21 17:26:31.383348] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream        took 0.12141540 seconds ( 1521107)
-        [2019-02-21 17:26:31.383348] [0x00004790] [trace]   CountDisjoint64
-        [2019-02-21 17:26:31.556417] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                       took 0.17227789 seconds ( 1521107)
-        [2019-02-21 17:26:31.704476] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled               took 0.14810430 seconds ( 1521107)
-        [2019-02-21 17:26:31.808518] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                      took 0.10418556 seconds ( 1521107)
-        [2019-02-21 17:26:31.911559] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128WithZero              took 0.10306623 seconds ( 1521107)
-        [2019-02-21 17:26:32.012600] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128Unrolled              took 0.10054994 seconds ( 1521107)
-        [2019-02-21 17:26:32.116641] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream        took 0.10454384 seconds ( 1521107)
-        [2019-02-21 17:26:32.116641] [0x00004790] [trace]   CountDisjoint64
-        [2019-02-21 17:26:32.279706] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                       took 0.16287113 seconds ( 1521107)
-        [2019-02-21 17:26:32.428766] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled               took 0.14874462 seconds ( 1521107)
-        [2019-02-21 17:26:32.533808] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                      took 0.10455850 seconds ( 1521107)
-        [2019-02-21 17:26:32.636849] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128WithZero              took 0.10355893 seconds ( 1521107)
-        [2019-02-21 17:26:32.737890] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128Unrolled              took 0.10048297 seconds ( 1521107)
-        [2019-02-21 17:26:32.837930] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream        took 0.10047027 seconds ( 1521107)
-        [2019-02-21 17:26:32.837930] [0x00004790] [trace]   CountDisjoint64
-        [2019-02-21 17:26:33.000995] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                       took 0.16260230 seconds ( 1521107)
-        [2019-02-21 17:26:33.151055] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled               took 0.14944114 seconds ( 1521107)
-        [2019-02-21 17:26:33.258098] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                      took 0.10745703 seconds ( 1521107)
-        [2019-02-21 17:26:33.360138] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128WithZero              took 0.10181835 seconds ( 1521107)
-        [2019-02-21 17:26:33.456177] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128Unrolled              took 0.09592696 seconds ( 1521107)
-        [2019-02-21 17:26:33.552215] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream        took 0.09554229 seconds ( 1521107)
-        [2019-02-21 17:26:33.552215] [0x00004790] [trace]   CountDisjoint64
-        [2019-02-21 17:26:33.705276] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                       took 0.15354453 seconds ( 1521107)
-        [2019-02-21 17:26:33.855336] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled               took 0.14997979 seconds ( 1521107)
-        [2019-02-21 17:26:33.961379] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                      took 0.10508004 seconds ( 1521107)
-        [2019-02-21 17:26:34.066421] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128WithZero              took 0.10546765 seconds ( 1521107)
-        [2019-02-21 17:26:34.169462] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128Unrolled              took 0.10304863 seconds ( 1521107)
-        [2019-02-21 17:26:34.276505] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128UnrolledStream        took 0.10645892 seconds ( 1521107)
         [2019-02-21 17:26:34.276505] [0x00004790] [trace]   CountDisjoint64.ExecuteNaive                      0.16667616
         [2019-02-21 17:26:34.276505] [0x00004790] [trace]   CountDisjoint64.ExecuteNaiveUnrolled              0.15176798
         [2019-02-21 17:26:34.276505] [0x00004790] [trace]   CountDisjoint64.ExecuteSSE128                     0.10966294

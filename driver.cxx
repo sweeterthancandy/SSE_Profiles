@@ -320,7 +320,8 @@ struct MaxElement : Test{
                 ADD_PROFILE(ExecuteSSELoadOneReg);
                 ADD_PROFILE(ExecuteSSEStide);
                 ADD_PROFILE(ExecuteBoostRange);
-                ADD_PROFILE(ExecuteSSEStrideRaw);
+                // bad
+                //ADD_PROFILE(ExecuteSSEStrideRaw);
 
                 return builder.Make();
         }
