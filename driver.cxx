@@ -741,12 +741,12 @@ private:
 void ReportAvailabe(){
         #if 0
         struct Feature{
-                Feature(std::string const& Name_, unsigned __int64 Mask_)
+                Feature(std::string const& Name_, std::int64_t Mask_)
                         :Name(Name_),
                         Mask(Mask_)
                 {}
                 std::string Name;
-                unsigned __int64 Mask;
+                std::int64_t Mask;
         };
         std::vector<Feature> features;
 
@@ -792,10 +792,10 @@ void ReportAvailabe(){
 
 int main(){
         enum{ Dp = 8 };
-        enum{ Count = 5 };
+        enum{ Count = 10 };
         enum{ Width = 50 };
         std::vector<boost::shared_ptr<Test> > T;
-        //T.push_back(boost::make_shared<MaxElement>(100000000));
+        T.push_back(boost::make_shared<MaxElement>(100000000));
         T.push_back(boost::make_shared<CountDisjoint>  (100000000));
         T.push_back(boost::make_shared<CountDisjoint64>(100000000));
 
@@ -804,13 +804,12 @@ int main(){
         BOOST_FOREACH(boost::shared_ptr<Test> test, T){
                 std::map<std::string, boost::timer::nanosecond_type> profile;
                 for(size_t idx=0;idx!=Count;++idx){
-                        BOOST_LOG_TRIVIAL(trace) << test->Name();
                         BOOST_FOREACH(NamedFunction const& F, test->Subs()){
                                 boost::timer::cpu_timer tmr;
                                 unsigned result = F.Execute();
                                 std::string token = test->Name() + "." + F.Name();
                                 profile[token] += tmr.elapsed().wall;
-                                BOOST_LOG_TRIVIAL(trace) << std::left << std::setw(Width) << token << boost::timer::format(tmr.elapsed(), Dp, " took %w seconds") << " ( " << result << ")";
+                                //BOOST_LOG_TRIVIAL(trace) << std::left << std::setw(Width) << token << boost::timer::format(tmr.elapsed(), Dp, " took %w seconds") << " ( " << result << ")";
                         }
                 }
                 typedef std::pair<std::string, boost::timer::nanosecond_type>  pair_type;
@@ -823,7 +822,7 @@ int main(){
                 boost::sort(view, sorter());
                 BOOST_FOREACH(pair_type& p, view){
                         p.second /= Count;
-                        BOOST_LOG_TRIVIAL(trace) << std::left << std::setw(Width) << p.first << std::setprecision(Dp) << (p.second / 1000000000.0);
+                        BOOST_LOG_TRIVIAL(trace) << std::left << std::setw(Width) << p.first << std::setprecision(Dp) << (p.second / 1000000000.0) << " seconds";
                 }
         }
 }
